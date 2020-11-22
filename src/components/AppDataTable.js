@@ -63,11 +63,12 @@ export default function AppDataTable() {
     nextPage,
     previousPage,
     setPageSize,
-    selectedFlatRows
+    state: { pageIndex, pageSize }
   } = useTable(
     {
       columns,
       data,
+      initialState: { pageIndex: 0 }
     },
     usePagination
   )
@@ -97,25 +98,46 @@ export default function AppDataTable() {
           })}
         </tbody>
       </Table>
-
-      <Pagination>
-        <Pagination.First />
-        <Pagination.Prev onClick={() => previousPage()}/>
-        <Pagination.Item>{1}</Pagination.Item>
-        <Pagination.Ellipsis />
-
-        <Pagination.Item>{10}</Pagination.Item>
-        <Pagination.Item>{11}</Pagination.Item>
-        <Pagination.Item active>{12}</Pagination.Item>
-        <Pagination.Item>{13}</Pagination.Item>
-        <Pagination.Item disabled>{14}</Pagination.Item>
-
-        <Pagination.Ellipsis />
-        <Pagination.Item>{20}</Pagination.Item>
-        <Pagination.Next onClick={() => nextPage()}/>
-        <Pagination.Last />
+        <Pagination>
+            <Pagination.First onClick={() => gotoPage(0)} disabled={!canPreviousPage}/>
+            <Pagination.Prev onClick={() => previousPage()} disabled={!canPreviousPage}/>
+            <Pagination.Next onClick={() => nextPage()}  disabled={!canNextPage}/>
+            <Pagination.Last onClick={() => gotoPage(pageCount - 1)} disabled={!canNextPage} />
+ 
+            <span className='ml-3 mr-3 mt-1'>
+            Page{' '}
+            <strong>
+                {pageIndex + 1} of {pageOptions.length}
+            </strong>{' '}
+            </span>
+            <span className='mr-3'>
+            | Go to page:{' '}
+            <input
+                type="number"
+                className='custom-input'
+                defaultValue={pageIndex + 1}
+                onChange={e => {
+                const page = e.target.value ? Number(e.target.value) - 1 : 0
+                gotoPage(page)
+                }}
+                style={{ width: '100px' }}
+            />
+            </span>{' '}
+            <select
+            className="custom-select-sm w-25"
+            value={pageSize}
+            onChange={e => {
+                setPageSize(Number(e.target.value))
+            }}
+            >
+            {[10, 20, 30, 40, 50].map(pageSize => (
+                <option key={pageSize} value={pageSize}>
+                Show {pageSize}
+                </option>
+            ))}
+            </select> 
         </Pagination>
     </div>
   )
-}
+}   
 
