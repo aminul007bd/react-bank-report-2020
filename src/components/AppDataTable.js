@@ -93,7 +93,7 @@ export default function AppDataTable() {
   return (
     <>
      <GlobalFilter filter={globalFilter} setFilter={setGlobalFilter} />
-      <Table {...getTableProps()} striped bordered hover>
+      <Table {...getTableProps()} responsive="sm" striped bordered hover>
         <thead> 
           {headerGroups.map((headerGroup) => (
             <tr {...headerGroup.getHeaderGroupProps()}>
