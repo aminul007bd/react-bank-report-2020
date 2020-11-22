@@ -1,6 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import axios from 'axios'
-import { useTable, usePagination } from 'react-table'
+import { format } from 'date-fns'
+import { useTable, useGlobalFilter, useFilters, usePagination } from 'react-table'
+import { GlobalFilter } from './GlobalFilter'
+import { ColumnFilter } from './ColumnFilter'
 import { Table, Pagination } from 'react-bootstrap'
 
 export default function AppDataTable() {
@@ -37,16 +40,25 @@ export default function AppDataTable() {
       {
         Header: 'Created',
         accessor: 'createdAt',
+        Cell: ({value}) => { return format(new Date(value), 'dd/mm/yyyy')}
       },
       {
         Header: 'Published',
         accessor: 'publishedAt',
+        Cell: ({value}) => { return format(new Date(value), 'dd/mm/yyyy')}
       },
     ],
     []
   )
 
   const data = useMemo(() => report, [report])
+
+  const defaultColumn = React.useMemo(
+    () => ({
+      Filter: ColumnFilter
+    }),
+    []
+  )
   // Table start
 
   const {
@@ -63,24 +75,33 @@ export default function AppDataTable() {
     nextPage,
     previousPage,
     setPageSize,
-    state: { pageIndex, pageSize }
+    state: { pageIndex, pageSize, globalFilter },
+    setGlobalFilter
   } = useTable(
     {
       columns,
       data,
-      initialState: { pageIndex: 0 }
+      initialState: { pageIndex: 0 },
+      defaultColumn
     },
+    useGlobalFilter,
+    useFilters,
     usePagination
   )
 
+
   return (
-    <div>
+    <>
+     <GlobalFilter filter={globalFilter} setFilter={setGlobalFilter} />
       <Table {...getTableProps()} striped bordered hover>
-        <thead>
+        <thead> 
           {headerGroups.map((headerGroup) => (
             <tr {...headerGroup.getHeaderGroupProps()}>
               {headerGroup.headers.map((column) => (
-                <th {...column.getHeaderProps()}>{column.render('Header')}</th>
+                <th {...column.getHeaderProps()}>
+                    {column.render('Header')}
+                    <div>{column.canFilter ? column.render('Filter') : null}</div>
+                </th>
               ))}
             </tr>
           ))}
@@ -137,7 +158,7 @@ export default function AppDataTable() {
             ))}
             </select> 
         </Pagination>
-    </div>
+    </>
   )
 }   
 
