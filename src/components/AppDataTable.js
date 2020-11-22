@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import axios from 'axios'
 import { useTable, usePagination } from 'react-table'
-import { Table } from 'react-bootstrap'
+import { Table, Pagination } from 'react-bootstrap'
 
 export default function AppDataTable() {
   const [report, setReport] = useState([])
@@ -54,7 +54,16 @@ export default function AppDataTable() {
     getTableBodyProps,
     headerGroups,
     prepareRow,
-    rows,
+    page,
+    canPreviousPage,
+    canNextPage,
+    pageOptions,
+    pageCount,
+    gotoPage,
+    nextPage,
+    previousPage,
+    setPageSize,
+    selectedFlatRows
   } = useTable(
     {
       columns,
@@ -76,7 +85,7 @@ export default function AppDataTable() {
           ))}
         </thead>
         <tbody {...getTableBodyProps()}>
-          {rows.map((row, i) => {
+          {page.map((row, i) => {
             prepareRow(row)
             return (
               <tr {...row.getRowProps()}>
@@ -88,6 +97,24 @@ export default function AppDataTable() {
           })}
         </tbody>
       </Table>
+
+      <Pagination>
+        <Pagination.First />
+        <Pagination.Prev onClick={() => previousPage()}/>
+        <Pagination.Item>{1}</Pagination.Item>
+        <Pagination.Ellipsis />
+
+        <Pagination.Item>{10}</Pagination.Item>
+        <Pagination.Item>{11}</Pagination.Item>
+        <Pagination.Item active>{12}</Pagination.Item>
+        <Pagination.Item>{13}</Pagination.Item>
+        <Pagination.Item disabled>{14}</Pagination.Item>
+
+        <Pagination.Ellipsis />
+        <Pagination.Item>{20}</Pagination.Item>
+        <Pagination.Next onClick={() => nextPage()}/>
+        <Pagination.Last />
+        </Pagination>
     </div>
   )
 }
