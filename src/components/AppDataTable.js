@@ -4,7 +4,7 @@ import { format } from 'date-fns'
 import { useTable, useGlobalFilter, useFilters, usePagination } from 'react-table'
 import { GlobalFilter } from './GlobalFilter'
 import { ColumnFilter } from './ColumnFilter'
-import { Table, Pagination } from 'react-bootstrap'
+import { Table, Pagination, Form } from 'react-bootstrap'
 
 export default function AppDataTable() {
   const [report, setReport] = useState([])
@@ -23,19 +23,23 @@ export default function AppDataTable() {
     () => [
       {
         Header: 'Bank ',
-        accessor: 'body.bankName',
+        accessor: 'body.bankName'
       },
       {
         Header: 'Bank BIC',
-        accessor: 'body.bankBIC',
+        accessor: 'body.bankBIC'
       },
       {
         Header: 'Report score value',
         accessor: 'body.reportScore',
+        Filter: NumberRangeColumnFilter,
+        filter: 'between',
       },
       {
         Header: 'Type of the report',
         accessor: 'body.type',
+        Filter: SelectColumnFilter,
+        filter: 'includes',
       },
       {
         Header: 'Created',
@@ -45,7 +49,8 @@ export default function AppDataTable() {
       {
         Header: 'Published',
         accessor: 'publishedAt',
-        Cell: ({value}) => { return format(new Date(value), 'dd/mm/yyyy')}
+        Cell: ({value}) => { return format(new Date(value), 'dd/mm/yyyy')},
+        Filter: SelectCheckFilter,
       },
     ],
     []
@@ -89,6 +94,117 @@ export default function AppDataTable() {
     usePagination
   )
 
+
+  // This is a custom filter UI for selecting
+// a unique option from a list
+function SelectColumnFilter({
+  column: { filterValue, setFilter, preFilteredRows, id },
+}) {
+  // Calculate the options for filtering
+  // using the preFilteredRows
+  const options = React.useMemo(() => {
+    const options = new Set()
+    preFilteredRows.forEach(row => {
+      options.add(row.values[id])
+    })
+    return [...options.values()]
+  }, [id, preFilteredRows])
+
+  // Render a multi-select box
+  return (
+    <select
+    className="custom-select-sm mt-2"
+      value={filterValue}
+      onChange={e => {
+        setFilter(e.target.value || undefined)
+      }}
+    >
+      <option value="">All</option>
+      {options.map((option, i) => (
+        <option key={i} value={option}>
+          {option}
+        </option>
+      ))}
+    </select>
+  )
+}
+
+// This is a custom UI for our 'between' or number range
+// filter. It uses two number boxes and filters rows to
+// ones that have values between the two
+function NumberRangeColumnFilter({
+  column: { filterValue = [], preFilteredRows, setFilter, id },
+}) {
+  const [min, max] = React.useMemo(() => {
+    let min = preFilteredRows.length ? preFilteredRows[0].values[id] : 0
+    let max = preFilteredRows.length ? preFilteredRows[0].values[id] : 0
+    preFilteredRows.forEach(row => {
+      min = Math.min(row.values[id], min)
+      max = Math.max(row.values[id], max)
+    })
+    return [min, max]
+  }, [id, preFilteredRows])
+
+  return (
+    <div
+      style={{
+        display: 'flex',
+      }}
+    >
+      <input
+        value={filterValue[0] || ''}
+        type="number"
+        onChange={e => {
+          const val = e.target.value
+          setFilter((old = []) => [val ? parseInt(val, 10) : undefined, old[1]])
+        }}
+        placeholder={`Min (${min})`}
+        style={{
+          width: '70px',
+          marginRight: '0.5rem',
+        }}
+      />
+      to
+      <input
+        value={filterValue[1] || ''}
+        type="number"
+        onChange={e => {
+          const val = e.target.value
+          setFilter((old = []) => [old[0], val ? parseInt(val, 10) : undefined])
+        }}
+        placeholder={`Max (${max})`}
+        style={{
+          width: '70px',
+          marginLeft: '0.5rem',
+        }}
+      />
+    </div>
+  )
+}
+
+
+function SelectCheckFilter({
+  column: { filterValue, setFilter, preFilteredRows, id },
+})  {
+  return (
+    <div
+      style={{
+        display: 'flex',
+      }}
+    >
+      <Form.Group controlId="formBasicCheckbox">
+        <Form.Check 
+          type="checkbox"
+          // onChange={e => {
+          //   setValue(e.target.value);
+          //   onChange(e.target.value);
+          // }}
+          label="Published" 
+        />
+     </Form.Group>
+    </div>
+  )
+}
 
   return (
     <>
